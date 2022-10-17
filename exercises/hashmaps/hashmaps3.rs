@@ -14,8 +14,6 @@
 
 // Execute `rustlings hint hashmaps3` or use the `hint` watch subcommand for a hint.
 
-// I AM NOT DONE
-
 use std::collections::HashMap;
 
 // A structure to store team name and its goal details.
@@ -25,9 +23,46 @@ struct Team {
     goals_conceded: u8,
 }
 
+struct Scores(HashMap<String, Team>);
+impl Scores {
+    fn new() -> Self {
+        Scores(HashMap::new())
+    }
+
+    fn add(&mut self, name: String, scored: u8, conceded: u8) {
+        match self.0.get_mut(&name) {
+            Some(scores) => {
+                scores.goals_scored += scored;
+                scores.goals_conceded += conceded;
+            }
+            None => {
+                let scores = Team {
+                    name: name.to_owned(),
+                    goals_scored: scored,
+                    goals_conceded: conceded,
+                };
+
+                self.0.insert(name.to_owned(), scores);
+            }
+        }
+        // if let Some(scores) = self.0.get_mut(&name) {
+        //     scores.goals_scored += scored;
+        //     scores.goals_conceded += conceded;
+        // } else {
+        //     let scores = Team {
+        //         name: name.to_owned(),
+        //         goals_scored: scored,
+        //         goals_conceded: conceded,
+        //     };
+
+        //     self.0.insert(name.to_owned(), scores);
+        // }
+    }
+}
+
 fn build_scores_table(results: String) -> HashMap<String, Team> {
     // The name of the team is the key and its associated struct is the value.
-    let mut scores: HashMap<String, Team> = HashMap::new();
+    let mut scores = Scores::new();
 
     for r in results.lines() {
         let v: Vec<&str> = r.split(',').collect();
@@ -35,13 +70,12 @@ fn build_scores_table(results: String) -> HashMap<String, Team> {
         let team_1_score: u8 = v[2].parse().unwrap();
         let team_2_name = v[1].to_string();
         let team_2_score: u8 = v[3].parse().unwrap();
-        // TODO: Populate the scores table with details extracted from the
-        // current line. Keep in mind that goals scored by team_1
-        // will be number of goals conceded from team_2, and similarly
-        // goals scored by team_2 will be the number of goals conceded by
-        // team_1.
+
+        scores.add(team_1_name, team_1_score, team_2_score);
+        scores.add(team_2_name, team_2_score, team_1_score);
     }
-    scores
+
+    scores.0
 }
 
 #[cfg(test)]
